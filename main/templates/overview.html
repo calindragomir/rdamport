@@ -1,0 +1,76 @@
+<html>
+<head>
+<style type="text/css">
+.dock {
+	border: thin;
+	border-color: red;
+}
+</style>
+</head>
+<body>
+	<div>
+	<h1>Rotterdam port docks</h1>
+		<div class="dock">
+		{% for dock in docks %}
+			<h3><a href="{% url 'dock_detail' dock.id %}">{{ dock.name }}</a></h3>
+			{% if dock.ship %}
+				<p>Dock Occupied by {{dock.ship}}</p>
+				<form name="cleardock" method="post" action="{% url 'port' %}">
+					{% csrf_token %}
+					<input type="hidden" name="removed_ship" value={{dock.ship.uid}}>
+					<input type="hidden" name="cleared_dock" value={{dock.id}}>
+					<input type="hidden" name="action" value="cleardock">
+					<input type="submit" value="Clear dock">
+				</form>
+			{% else %}
+				<p>Dock Available</p>
+			{% endif %} 
+		{% empty %}
+		<div>
+			<p>This port has no docks.</p>
+		</div>
+		{% endfor %}
+		</div>
+		<div class="ships">
+		<h3>Ships outside the docks</h3>
+		<ul>
+			{% for ship in available_ships %}
+				<form name="placeship" method="post" action="{% url 'port' %}">
+					{% csrf_token %}
+					<li>{{ ship }}</li>
+					<select name="free_dock" onchange="this.form.submit()">
+						<option value="0">----</option>
+					{% for free_dock in available_docks %}
+					  <option value="{{free_dock.id}}">{{free_dock.name}}</option>
+					{% endfor %}
+					</select>
+					<input name="ship_id" type="hidden" value="{{ship.uid}}">
+					<input type="hidden" name="action" value="placeship">
+				</form>
+				<form name="removeship" method="post" action="{% url 'port' %}">
+					{% csrf_token %}
+					<input name="ship_id" type="hidden" value="{{ship.uid}}">
+					<input type="hidden" name="action" value="removeship">
+					<input type="submit" value="Remove this ship">
+				</form>
+			{% empty %}
+			<div>
+				<p>No other ships are available</p>
+			</div>
+			{% endfor %}
+		</ul>
+		</div>
+		<form name="createdock" method="post" action="{% url 'port' %}">
+			{% csrf_token %}
+			<input type="text" name="dockname">
+			<input type="submit" value="Construct new dock">
+			<input type="hidden" name="action" value="adddock">
+		</form>
+		<form name="generateShip" method="post" action="{% url 'port' %}">
+			{% csrf_token %}
+			<input type="hidden" name="action" value="generateship">
+			<input type="submit" value="Generate a new ship">
+		</form>
+	</div>
+</body>
+</html>

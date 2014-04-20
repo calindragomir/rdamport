@@ -1,0 +1,28 @@
+<html>
+<head>
+<style type="text/css">
+
+</style>
+</head>
+<body>
+<h1>{{dock.name}}</h1>
+<h2>Currently occupied by: {{dock.ship}}</h2>
+<h2>Ship containers:</h2>
+	{% for container in dock.ship.container_set.all %}
+		<li>{{container}}</li>
+	{% empty %}
+		<p>There are no containers on this ship.</p>
+	{% endfor %}
+	<h2>Employees assigned to this dock:</h2>
+	{% for employee in dock.employee_set.all %}
+		{% if employee.is_supervisor %}
+			<li>{{employee.first_name}} {{employee.last_name}} <strong>(supervisor)</strong></li>
+		{% else %}
+			<li>{{employee.first_name}} {{employee.last_name}}</li>
+		{% endif %}
+	{% empty %}
+		<p>There are no employees assigned to this dock.</p>
+	{% endfor %}
+<button><a href="{% url 'port' %}">Go back to the port</a></button>
+</body>
+</html>

@@ -1,17 +1,14 @@
 from django.conf.urls import patterns, include, url
+from django.contrib import admin
+from main.views import PortView, DockDetailView
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'rdamport.views.home', name='home'),
-    # url(r'^rdamport/', include('rdamport.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^$', PortView.as_view() , name='port'),
+    url(r'^dock/(?P<pk>\d+)', DockDetailView.as_view() , name='dock_detail'),
 
     # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
 )
