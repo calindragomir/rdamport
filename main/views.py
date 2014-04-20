@@ -4,7 +4,7 @@ from django.views.generic import TemplateView, DetailView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
-from main.util import get_unique_id
+from main.util import get_unique_id, get_available_elements, get_connected_elements
 
 import datetime
 
@@ -21,31 +21,10 @@ class PortView(TemplateView):
         context = super(PortView, self).get_context_data(**kwargs)
         # Add the information we need in context
         context['docks'] = Dock.objects.all()
-        context['available_ships'] = self.get_available_ships()
-        context['available_docks'] = self.get_available_docks()
+        context['available_ships'] = get_available_elements(Ship, 'dock', Dock)
+        context['available_docks'] = get_available_elements(Dock, 'ship')
+        context['available_employees'] = get_available_elements(Employee, 'assigned_to')
         return context
-
-    def get_available_docks(self):
-        dock_instances = Dock.objects.all()
-        available_docks = []
-
-        for dock in dock_instances:
-            if not dock.ship:
-                available_docks.append(dock)
-
-        return available_docks
-
-    def get_available_ships(self):
-        ship_instances = Ship.objects.all()
-        available_ships = []
-
-        for ship in ship_instances:
-            try:
-                dock = ship.dock
-            except Dock.DoesNotExist:
-                available_ships.append(ship)
-
-        return available_ships
 
     def post(self, request, *args, **kwargs):
         action = request.POST.get('action')
@@ -81,7 +60,7 @@ class PortView(TemplateView):
 
         elif action=="placeship":
             # Places a ship in a given dock
-            dock_id = request.POST.get('free_dock', '')
+            dock_id = request.POST.get('occupy_dock', '')
             ship_uid = request.POST.get('ship_id', '')
             dock = Dock.objects.get(pk=int(dock_id))
             ship = Ship.objects.get(uid=ship_uid)
@@ -97,6 +76,16 @@ class PortView(TemplateView):
                             dock=dock,
                             ship=ship,
                             date_in=datetime.datetime.now())
+
+        elif action=="placeemployee":
+            # Places a ship in a given dock
+            dock_id = request.POST.get('assign_to_dock', '')
+            employee_id = request.POST.get('employee_id', '')
+            dock = Dock.objects.get(pk=int(dock_id))
+            employee = Employee.objects.get(id=employee_id)
+
+            employee.assigned_to = dock
+            employee.save()
 
         elif action=="generateship":
             # Generates a new ship record
@@ -122,4 +111,54 @@ class DockDetailView(DetailView):
         # Call the base implementation first to get a context
         context = super(DockDetailView, self).get_context_data(**kwargs)
         # Add the information we need in context
+        context['available_containers'] = get_available_elements(Container, 'ship')
+        context['assigned_employees'] = get_connected_elements(Employee, 'assigned_to',
+                                                               self.get_object())
+        context['dock_history'] = DockHistory.objects.filter(dock=self.get_object()).order_by('-id')
         return context
+
+    def post(self, request, *args, **kwargs):
+        current_dock_pk = int(kwargs['pk'])
+        current_dock = Dock.objects.get(pk=current_dock_pk)
+        action = request.POST.get('action')
+
+        if action == 'createcontainer':
+            container_uid = get_unique_id(6, Container, 'uid')
+            is_flamable = bool(request.POST.get('flamable', ''))
+            is_chemical_hazard = bool(request.POST.get('chemicalhazard', ''))
+
+            container = Container.objects.create(
+                uid=container_uid, is_flamable=is_flamable,
+                is_chemical_hazard=is_chemical_hazard, ship=None)
+
+        elif action == 'containercontrol':
+            move_containers = request.POST.getlist('move_containers')
+            place_container = bool(request.POST.get("placecontainer"))
+            delete_container = bool(request.POST.get("deletecontainer"))
+            print place_container, delete_container
+
+            if move_containers:
+                if place_container:
+                    ship = Ship.objects.get(uid=request.POST.get('ship_id', ''))
+
+                    for move_uid in move_containers:
+                        container = Container.objects.get(uid=move_uid)
+                        container.ship = ship
+                        container.save()
+
+                elif delete_container:
+                    for move_uid in move_containers:
+                        container = Container.objects.get(uid=move_uid)
+                        container.delete()
+
+        elif action == 'removecontainer':
+            container = Container.objects.get(uid=request.POST['container_uid'])
+            container.ship = None
+            container.save()
+
+        elif action == 'releaseemployee':
+            employee = Employee.objects.get(id=request.POST['employee_id'])
+            employee.assigned_to = None
+            employee.save()
+
+        return HttpResponseRedirect(reverse(('dock_detail'), kwargs={'pk': current_dock_pk}))

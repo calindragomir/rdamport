@@ -38,10 +38,10 @@
 				<form name="placeship" method="post" action="{% url 'port' %}">
 					{% csrf_token %}
 					<li>{{ ship }}</li>
-					<select name="free_dock" onchange="this.form.submit()">
+					<select name="occupy_dock" onchange="this.form.submit()">
 						<option value="0">----</option>
 					{% for free_dock in available_docks %}
-					  <option value="{{free_dock.id}}">{{free_dock.name}}</option>
+						<option value="{{free_dock.id}}">{{free_dock.name}}</option>
 					{% endfor %}
 					</select>
 					<input name="ship_id" type="hidden" value="{{ship.uid}}">
@@ -56,6 +56,33 @@
 			{% empty %}
 			<div>
 				<p>No other ships are available</p>
+			</div>
+			{% endfor %}
+		</ul>
+		</div>
+		<div class="employee">
+		<h3>Available employees</h3>
+		<ul>
+			{% for employee in available_employees %}
+				<form name="placeship" method="post" action="{% url 'port' %}">
+					{% csrf_token %}
+					{% if employee.is_supervisor %}
+					<li>{{ employee.first_name }} {{ employee.last_name }} <strong>(supervisor)</strong></li>
+					{% else %}
+					<li>{{ employee.first_name }} {{ employee.last_name }}</li>
+					{% endif %}
+					<select name="assign_to_dock" onchange="this.form.submit()">
+						<option value="0">----</option>
+					{% for dock in docks %}
+						<option value="{{dock.id}}">{{dock.name}}</option>
+					{% endfor %}
+					</select>
+					<input name="employee_id" type="hidden" value="{{employee.id}}">
+					<input type="hidden" name="action" value="placeemployee">
+				</form>
+			{% empty %}
+			<div>
+				<p>There are no employees available</p>
 			</div>
 			{% endfor %}
 		</ul>

@@ -1,18 +1,45 @@
 <html>
 <head>
-<style type="text/css">
-
-</style>
+{% if not dock.employee_set.all %}
+	<script type="text/javascript">
+	function disableSumbit() {
+		var elems = document.getElementsByName("removeShip");
+		for (var j = 0; j < elems.length; j++) {
+		  elems[j].disabled = true;
+		};
+	};
+	window.onload = disableSumbit;
+	</script>
+{% endif %}
 </head>
 <body>
-<h1>{{dock.name}}</h1>
-<h2>Currently occupied by: {{dock.ship}}</h2>
-<h2>Ship containers:</h2>
-	{% for container in dock.ship.container_set.all %}
-		<li>{{container}}</li>
-	{% empty %}
-		<p>There are no containers on this ship.</p>
-	{% endfor %}
+	<h1>{{dock.name}}</h1>
+
+	<h2>Currently occupied by: {{dock.ship}}</h2>
+
+		{% if dock.ship %}
+		<!-- Display this div only when there is a ship -->
+			<h2>Ship containers:</h2>
+			{% for container in dock.ship.container_set.all %}
+				<li>{{container}}
+				{% if container.is_flamable %}
+				!FLAMABLE!
+				{% endif %}
+				{% if container.is_chemical_hazard %}
+				!CHEMICAL HAZARD!
+				{% endif %}
+				</li>
+				<form name="removecontainer" method="post" action="{% url 'dock_detail' dock.pk %}">
+					{% csrf_token %}
+					<input type="hidden" name="action" value="removecontainer">
+					<input type="hidden" name="container_uid" value="{{container.uid}}">
+					<input type="submit" name="removeShip" value="Remove from ship">
+				</form>
+			{% empty %}
+				<p>There are no containers on this ship.</p>
+			{% endfor %}
+		{% endif %}
+
 	<h2>Employees assigned to this dock:</h2>
 	{% for employee in dock.employee_set.all %}
 		{% if employee.is_supervisor %}
@@ -20,9 +47,59 @@
 		{% else %}
 			<li>{{employee.first_name}} {{employee.last_name}}</li>
 		{% endif %}
+		<form name="releaseemployee" method="post" action="{% url 'dock_detail' dock.pk %}">
+			{% csrf_token %}
+			<input type="hidden" name="employee_id" value="{{employee.id}}">
+			<input type="hidden" name="action" value="releaseemployee">
+			<input type="submit" value="Release employee">
+		</form>
 	{% empty %}
 		<p>There are no employees assigned to this dock.</p>
 	{% endfor %}
-<button><a href="{% url 'port' %}">Go back to the port</a></button>
+
+	<h2>Available containers</h2>
+	{% if available_containers %}
+		<form name="containercontrol" method="post" action="{% url 'dock_detail' dock.pk %}">
+			{% csrf_token %}
+			{% for container in available_containers %}
+				<input type="checkbox" name="move_containers" value="{{ container.uid }}">{{ container.uid }}<br>
+			{% endfor %}
+			<input name="ship_id" type="hidden" value="{{dock.ship.uid}}">
+			<input type="hidden" name="action" value="containercontrol">
+			{% if not dock.employee_set.all or not dock.ship %}
+				You cannot move items when no employees are assigned to this dock or no ship is docked!
+			{% else %}
+				<input name="placecontainer" type="submit" value="Place on ship">
+			{% endif %}
+			<input name="deletecontainer" type="submit" value="Delete container">
+		</form>
+	{% else %}
+		<div>
+			<p>No other containers are available</p>
+		</div>
+	{% endif %}
+
+	<h2>Create a container</h2>
+	<form name="createcontainer" method="post" action="{% url 'dock_detail' dock.pk %}">
+		{% csrf_token %}
+		<input type="checkbox" name="flamable" value="1">Contains flamable items<br>
+		<input type="checkbox" name="chemicalhazard" value="1">Contains dangerous chemicals<br>
+		<input type="hidden" name="action" value="createcontainer">
+		<input type="submit" value="Create new container">
+	</form>
+
+	<h2>Dock History</h2>
+	{% if not dock_history %}
+		<p>No history available for this dock!</p>
+	{% else %}
+		<ul>
+		{% for record in dock_history %}
+			<li>{{record.ship}} date-in: {{record.date_in}} date-out: {{record.date_out}}</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+
+	<button><a href="{% url 'port' %}">Go back to the port</a></button>
+
 </body>
 </html>

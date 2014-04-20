@@ -15,7 +15,7 @@ class Container(models.Model):
     ship = models.ForeignKey(Ship, blank=True, null=True)
 
     def __unicode__(self):
-        return self.uid
+        return "Container {container_id}".format(container_id=self.uid)
 
 class Dock(models.Model):
 
@@ -29,8 +29,8 @@ class DockHistory(models.Model):
 
     dock = models.ForeignKey(Dock)
     ship = models.ForeignKey(Ship)
-    date_in = models.DateTimeField(auto_now=True)
-    date_out = models.DateTimeField(blank=True)
+    date_in = models.DateTimeField(blank=True, null=True)
+    date_out = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
         return "{dock} {ship}".format(dock=self.dock, ship=self.ship)
