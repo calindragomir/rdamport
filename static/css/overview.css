@@ -1,0 +1,21 @@
+.group-title {
+	color: white;
+	font-size: 16px;
+}
+.supervisor-text {
+	color: grey;
+	font-size: 12px;
+}
+.shipgeneratorbtn {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.pagetitle {
+	margin-left: 15px;
+	font-family: Arial;
+	font-weight: bold;
+}
+.constructdockbtn {
+	margin-left: 10px;
+	margint-top: 10px;
+}

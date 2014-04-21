@@ -2,99 +2,165 @@
 <html lang="en">
 <head>
 {% load staticfiles %}
-<link rel="stylesheet" type="text/css" href="{% static "vendor/bootstrap-3.1.1/css/bootstrap.min.css" %}">
+<script type="text/javascript" src="{% static 'vendor/bootstrap-3.1.1/js/bootstrap.min.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-3.1.1/css/bootstrap.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-3.1.1/css/bootstrap-theme.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/overview.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-	<div>
-	<h1>Rotterdam port docks</h1>
-		<div class="dock">
-		{% for dock in docks %}
-			<h3><a href="{% url 'dock_detail' dock.id %}">{{ dock.name }}</a></h3>
-			{% if dock.ship %}
-				<p>Dock Occupied by {{dock.ship}}</p>
-				<form name="cleardock" method="post" action="{% url 'port' %}">
-					{% csrf_token %}
-					<input type="hidden" name="removed_ship" value={{dock.ship.uid}}>
-					<input type="hidden" name="cleared_dock" value={{dock.id}}>
-					<input type="hidden" name="action" value="cleardock">
-					<input type="submit" value="Clear dock">
-				</form>
+	<div class="container">
+		<nav class="navbar navbar-default" role="navigation">
+			<h1 class="pagetitle">Rotterdam Port</h1>
+		<ol class="breadcrumb">
+		  <li><a href="{% url 'port' %}" class="active">Port</a></li>
+		</ol>
+		</nav>
+
+		<div class="panel panel-primary">
+		  <div class="panel-heading"><h4><strong>Docks</strong></h4></div>
+		  <div class="panel-body">
+		  	{% if docks %}
+		    <table class="table table-hover">
+		    	<thead>
+		    		<tr>
+		    			<td><strong>Dock name<strong></td>
+		    			<td><strong>Dock information<strong></td>
+		    		</tr>
+		    	</thead>
+		    	<tbody>
+			    {% for dock in docks %}
+					<tr>
+						<div class="row">
+							<td class="col-md-3">
+								<h3>
+									<a href="{% url 'dock_detail' dock.id %}">
+										{{ dock.name }}
+										{% with total=dock.employee_set.count %}
+											{% if total %}
+												<span class="badge">{{ total }} employee{{ total|pluralize }}</span>
+											{% else %}
+												<span class="badge alert-danger">No employees</span>
+											{% endif %}
+										{% endwith %}
+									</a>
+								</h3>
+							</td>
+							<td class="col-md-9">
+								{% if dock.ship %}
+									<form name="cleardock" method="post" action="{% url 'port' %}">
+										<span>Dock Occupied by <strong>{{dock.ship}}</strong></span>
+										{% csrf_token %}
+										<input type="hidden" name="removed_ship" value={{dock.ship.uid}}>
+										<input type="hidden" name="cleared_dock" value={{dock.id}}>
+										<input type="hidden" name="action" value="cleardock">
+										<input class="btn btn-danger" type="submit" value="Clear dock">
+									</form>
+								{% else %}
+									<h3><span class="label label-success">Available</span></h3>
+								{% endif %}
+							</td>
+						</div>	
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
 			{% else %}
-				<p>Dock Available</p>
-			{% endif %} 
-		{% empty %}
-		<div>
-			<p>This port has no docks.</p>
+				<div class="alert alert-danger">This port has no docks.</div>
+			{% endif %}
+		  </div>
 		</div>
-		{% endfor %}
-		</div>
-		<div class="ships">
-		<h3>Ships outside the docks</h3>
-		<ul>
+
+		<ul class="list-group">
+			<li class="list-group-item active">
+				<strong class="group-title">Ships outside the docks</strong>
+			</li>
 			{% for ship in available_ships %}
-				<form name="placeship" method="post" action="{% url 'port' %}">
-					{% csrf_token %}
-					<li>{{ ship }}</li>
-					<select name="occupy_dock" onchange="this.form.submit()">
-						<option value="0">----</option>
-					{% for free_dock in available_docks %}
-						<option value="{{free_dock.id}}">{{free_dock.name}}</option>
-					{% endfor %}
-					</select>
-					<input name="ship_id" type="hidden" value="{{ship.uid}}">
-					<input type="hidden" name="action" value="placeship">
-				</form>
-				<form name="removeship" method="post" action="{% url 'port' %}">
-					{% csrf_token %}
-					<input name="ship_id" type="hidden" value="{{ship.uid}}">
-					<input type="hidden" name="action" value="removeship">
-					<input type="submit" value="Remove this ship">
-				</form>
+				<li class="list-group-item">
+					<div class="row">
+						<div class="col-md-3">
+							<strong>{{ ship }}</strong>
+						</div>
+						<div class="col-md-5 text-center">
+							<form name="placeship" method="post" action="{% url 'port' %}">
+								{% csrf_token %}
+								<select class="form-control" name="occupy_dock" onchange="this.form.submit()">
+									<option value="0">----</option>
+								{% for free_dock in available_docks %}
+									<option value="{{free_dock.id}}">{{free_dock.name}}</option>
+								{% endfor %}
+								</select>
+								<input name="ship_id" type="hidden" value="{{ship.uid}}">
+								<input type="hidden" name="action" value="placeship">
+							</form>
+						</div>
+						<div class="col-md-4">
+							<form name="removeship" method="post" action="{% url 'port' %}">
+								{% csrf_token %}
+								<input name="ship_id" type="hidden" value="{{ship.uid}}">
+								<input type="hidden" name="action" value="removeship">
+								<input class="btn btn-sm btn-danger" type="submit" value="Remove this ship">
+							</form>
+						</div>
+					</div>
+				</li>
 			{% empty %}
-			<div>
-				<p>No other ships are available</p>
-			</div>
+				<div class="alert alert-danger">No other ships are available</div>
 			{% endfor %}
+
+			<form name="generateShip" method="post" action="{% url 'port' %}">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="generateship">
+				<input class="btn btn-info shipgeneratorbtn" type="submit" value="Generate a new ship">
+			</form>
 		</ul>
-		</div>
-		<div class="employee">
-		<h3>Available employees</h3>
-		<ul>
+
+		<ul class="list-group">
+			<li class="list-group-item active">
+				<strong class="group-title">Available employees</strong>
+			</li>
 			{% for employee in available_employees %}
-				<form name="placeship" method="post" action="{% url 'port' %}">
-					{% csrf_token %}
-					{% if employee.is_supervisor %}
-					<li>{{ employee.first_name }} {{ employee.last_name }} <strong>(supervisor)</strong></li>
-					{% else %}
-					<li>{{ employee.first_name }} {{ employee.last_name }}</li>
-					{% endif %}
-					<select name="assign_to_dock" onchange="this.form.submit()">
-						<option value="0">----</option>
-					{% for dock in docks %}
-						<option value="{{dock.id}}">{{dock.name}}</option>
-					{% endfor %}
-					</select>
-					<input name="employee_id" type="hidden" value="{{employee.id}}">
-					<input type="hidden" name="action" value="placeemployee">
-				</form>
+				<li class="list-group-item">
+					<div class="row">
+						<div class="col-md-4">
+							{% if employee.is_supervisor %}
+								<strong>{{ employee.first_name }} {{ employee.last_name }} <em class="supervisor-text">supervisor</em></strong>
+							{% else %}
+								<strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+							{% endif %}
+						</div>
+						<div class="col-md-8">
+							<form name="placeship" method="post" action="{% url 'port' %}">
+								{% csrf_token %}
+								<select class="form-control" name="assign_to_dock" onchange="this.form.submit()">
+									<option value="0">----</option>
+								{% for dock in docks %}
+									<option value="{{dock.id}}">{{dock.name}}</option>
+								{% endfor %}
+								</select>
+								<input name="employee_id" type="hidden" value="{{employee.id}}">
+								<input type="hidden" name="action" value="placeemployee">
+							</form>
+						</div>
+					</div>
+				</li>
 			{% empty %}
-			<div>
-				<p>There are no employees available</p>
-			</div>
+				<div class="alert alert-danger">There are no employees available</div>
 			{% endfor %}
 		</ul>
+
+		<div class="panel panel-success">
+			<div class="panel-heading"><h4><strong>Builder</strong></h4></div>
+			<div class="panel-body">
+
+			<form class="form-inline" name="createdock" method="post" action="{% url 'port' %}">
+				{% csrf_token %}
+				<input class="form-control" type="text" name="dockname">
+				<input class="btn btn-success constructdockbtn" type="submit" value="Construct new dock">
+				<input type="hidden" name="action" value="adddock">
+			</form>
+			</div>
 		</div>
-		<form name="createdock" method="post" action="{% url 'port' %}">
-			{% csrf_token %}
-			<input type="text" name="dockname">
-			<input type="submit" value="Construct new dock">
-			<input type="hidden" name="action" value="adddock">
-		</form>
-		<form name="generateShip" method="post" action="{% url 'port' %}">
-			{% csrf_token %}
-			<input type="hidden" name="action" value="generateship">
-			<input type="submit" value="Generate a new ship">
-		</form>
-	</div>
+	</div> <!-- end container -->
 </body>
 </html>
