@@ -62,7 +62,15 @@
 		<form name="containercontrol" method="post" action="{% url 'dock_detail' dock.pk %}">
 			{% csrf_token %}
 			{% for container in available_containers %}
-				<input type="checkbox" name="move_containers" value="{{ container.uid }}">{{ container.uid }}<br>
+				<input type="checkbox" name="move_containers" value="{{ container.uid }}">
+				{{ container }}
+				{% if container.is_flamable %}
+					!FLAMABLE!
+				{% endif %}
+				{% if container.is_chemical_hazard %}
+					!CHEMICAL HAZARD!
+				{% endif %}
+				<br>
 			{% endfor %}
 			<input name="ship_id" type="hidden" value="{{dock.ship.uid}}">
 			<input type="hidden" name="action" value="containercontrol">
