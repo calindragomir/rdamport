@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from main.util import get_unique_id, get_available_elements, get_connected_elements
+from main.generaterecords import generate_employee_records
 
 import datetime
 
@@ -162,3 +163,8 @@ class DockDetailView(DetailView):
             employee.save()
 
         return HttpResponseRedirect(reverse(('dock_detail'), kwargs={'pk': current_dock_pk}))
+
+def generate_employees(request):
+    generate_employee_records()
+
+    return HttpResponseRedirect(reverse('port'))

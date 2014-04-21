@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 {% load staticfiles %}
-<script type="text/javascript" src="{% static 'vendor/bootstrap-3.1.1/js/bootstrap.min.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-3.1.1/css/bootstrap.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-3.1.1/css/bootstrap-theme.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/overview.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
@@ -38,9 +38,9 @@
 										{{ dock.name }}
 										{% with total=dock.employee_set.count %}
 											{% if total %}
-												<span class="badge">{{ total }} employee{{ total|pluralize }}</span>
+												<span class="employeebadge badge">{{ total }} employee{{ total|pluralize }}</span>
 											{% else %}
-												<span class="badge alert-danger">No employees</span>
+												<span class="employeebadge badge alert-danger">No employees</span>
 											{% endif %}
 										{% endwith %}
 									</a>
@@ -118,15 +118,16 @@
 		<ul class="list-group">
 			<li class="list-group-item active">
 				<strong class="group-title">Available employees</strong>
+				<button class="recruit pull-right btn btn-default btn-sm"><span class="glyphicon glyphicon-globe"></span><a href="{% url 'generate_employees' %}"> Recruit employees</a></button>
 			</li>
 			{% for employee in available_employees %}
 				<li class="list-group-item">
 					<div class="row">
 						<div class="col-md-4">
 							{% if employee.is_supervisor %}
-								<strong>{{ employee.first_name }} {{ employee.last_name }} <em class="supervisor-text">supervisor</em></strong>
+								<span class="glyphicon glyphicon-user"></span> <strong>{{ employee.first_name }} {{ employee.last_name }} <em class="supervisor-text">supervisor</em></strong>
 							{% else %}
-								<strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+								<span class="glyphicon glyphicon-user"></span> <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
 							{% endif %}
 						</div>
 						<div class="col-md-8">
@@ -147,10 +148,11 @@
 			{% empty %}
 				<div class="alert alert-danger">There are no employees available</div>
 			{% endfor %}
+		
 		</ul>
 
 		<div class="panel panel-success">
-			<div class="panel-heading"><h4><strong>Builder</strong></h4></div>
+			<div class="panel-heading"><h4><strong><span class="glyphicon glyphicon-cog"></span> Builder</strong></h4></div>
 			<div class="panel-body">
 
 			<form class="form-inline" name="createdock" method="post" action="{% url 'port' %}">
