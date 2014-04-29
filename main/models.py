@@ -7,16 +7,6 @@ class Ship(models.Model):
     def __unicode__(self):
         return "Ship {ship_id}".format(ship_id=self.uid)
 
-class Container(models.Model):
-
-    uid = models.CharField(primary_key=True, max_length=50)
-    is_flamable = models.BooleanField()
-    is_chemical_hazard = models.BooleanField()
-    ship = models.ForeignKey(Ship, blank=True, null=True)
-
-    def __unicode__(self):
-        return "Container {container_id}".format(container_id=self.uid)
-
 class Dock(models.Model):
 
     name = models.CharField(max_length=100, blank=False)
@@ -24,6 +14,17 @@ class Dock(models.Model):
   
     def __unicode__(self):
         return self.name
+    
+class Container(models.Model):
+
+    uid = models.CharField(primary_key=True, max_length=50)
+    is_flamable = models.BooleanField()
+    is_chemical_hazard = models.BooleanField()
+    ship = models.ForeignKey(Ship, blank=True, null=True)
+    dock = models.ForeignKey(Dock, blank=True, null=True)
+
+    def __unicode__(self):
+        return "Container {container_id}".format(container_id=self.uid)
 
 class DockHistory(models.Model):
 

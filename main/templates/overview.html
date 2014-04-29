@@ -26,6 +26,7 @@
 		    		<tr>
 		    			<td><strong>Dock name<strong></td>
 		    			<td><strong>Dock information<strong></td>
+		    			<td><strong>Hazards<strong></td>
 		    		</tr>
 		    	</thead>
 		    	<tbody>
@@ -46,7 +47,7 @@
 									</a>
 								</h3>
 							</td>
-							<td class="col-md-9">
+							<td class="col-md-4">
 								{% if dock.ship %}
 									<form name="cleardock" method="post" action="{% url 'port' %}">
 										<span>Dock Occupied by <strong>{{dock.ship}}</strong></span>
@@ -59,6 +60,23 @@
 								{% else %}
 									<h3><span class="label label-success">Available</span></h3>
 								{% endif %}
+							</td>
+							<td class="col-md-4">
+								{% for container in dock.container_set.all %}
+									{% if container.is_flamable %}
+										FALMABLE!
+									{% elif container.is_chemical_hazard %}
+										CHEMICAL
+									{% endif %}
+								{% endfor %}
+								
+								{% for container in dock.ship.container_set.all %}
+									{% if container.is_flamable %}
+										FALMABLE!
+									{% elif container.is_chemical_hazard %}
+										CHEMICAL
+									{% endif %}
+								{% endfor %}
 							</td>
 						</div>	
 					</tr>

@@ -130,13 +130,13 @@ class DockDetailView(DetailView):
 
             container = Container.objects.create(
                 uid=container_uid, is_flamable=is_flamable,
-                is_chemical_hazard=is_chemical_hazard, ship=None)
+                is_chemical_hazard=is_chemical_hazard, ship=None,
+                dock=current_dock)
 
         elif action == 'containercontrol':
             move_containers = request.POST.getlist('move_containers')
             place_container = bool(request.POST.get("placecontainer"))
             delete_container = bool(request.POST.get("deletecontainer"))
-            print place_container, delete_container
 
             if move_containers:
                 if place_container:
